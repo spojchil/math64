@@ -1,0 +1,15 @@
+{
+    "username": "231030200313",
+    "password": "Sun2069510482",
+    "debug": true,
+    "port": 90910,
+    "database": {
+        "host": "localhost",
+        "port": 3306,
+        "username": "admin",
+        "password": "123456"
+    },
+    "logging": {
+        "level": "IN123FO"
+    }
+}
