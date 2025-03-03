@@ -3,7 +3,7 @@ import csv
 # 输入文件名
 input_file = 'electricity_data.csv'
 # 输出文件名
-output_file = 'updated_electricity_data.csv'
+output_file = '../电费分析/电量数据.csv'
 
 # 初始化变量来存储上一行的电量值
 previous_balance = None

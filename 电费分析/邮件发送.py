@@ -1,6 +1,5 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 
 def send_email_to_self(file_path):
@@ -35,4 +34,4 @@ def send_email_to_self(file_path):
         server.quit()
 
 # 使用示例
-send_email_to_self(r"F:\math64\tupian\power_and_energy_plot.png")
+send_email_to_self(r"电量图.png")

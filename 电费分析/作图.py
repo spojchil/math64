@@ -5,7 +5,7 @@ import time
 plt.rcParams['font.sans-serif'] = ['SimHei']  # 使用 SimHei 字体
 plt.rcParams['axes.unicode_minus'] = False  # 解决负号显示问题
 # 读取CSV文件
-df = pd.read_csv(r'F:\math64\小游戏\updated_electricity_data.csv', header=None, names=['Time', 'Remaining_Energy'])
+df = pd.read_csv(r'电量数据.csv', header=None, names=['Time', 'Remaining_Energy'])
 
 # 转换时间格式
 df['Time'] = pd.to_datetime(df['Time'])
@@ -74,12 +74,12 @@ plt.figtext(0.8, 0.93, f'近十五次平均功率{pengjjun15:.2f}瓦，距离用
             ha='center')
 plt.figtext(0.8, 0.96, f'近五次平均功率{pengjjun5:.2f}瓦，距离用完还有{shengyv5}', fontsize=12, color='blue',
             ha='center')
-output_file = r'F:\math64\tupian\power_and_energy_plot.png'
+output_file = r'电量图.png'
 plt.savefig(output_file, dpi=200)
-plt.savefig(r"C:\Users\20695\Desktop\电量变化图.png", dpi=300)
+plt.savefig(r"C:/Users/20695/Desktop/电量图.png", dpi=300)
 # 显示图表
 # plt.show()
 time.sleep(5)
 import subprocess
 
-subprocess.run([r'F:\math64\.venv\Scripts\pythonw.exe', r'F:\math64\小游戏\版本.py'], capture_output=True, text=True)
+subprocess.run([r'F:/math64/.venv/Scripts/pythonw.exe', r'F:/math64/电费分析/邮件发送.py'], capture_output=True, text=True)

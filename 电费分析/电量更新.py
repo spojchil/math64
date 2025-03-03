@@ -14,7 +14,7 @@ def read_config(file_path):
 def write_config(file_path, config_data):
     with open(file_path, 'w') as file:
         json.dump(config_data, file, indent=4)
-base_config=read_config(r"F:\math64\小游戏\基础配置.json")
+base_config=read_config(r"基础配置.json")
 # 第一步：登录获取 token
 def step1_login(username,password):
     login_url = "https://mycas.haut.edu.cn/token/password/passwordLogin"
@@ -199,7 +199,7 @@ headers = {
 cookies = base_config['cookies']
 
 # 数据存储文件
-DATA_FILE = r"F:\math64\小游戏\updated_electricity_data.csv"
+DATA_FILE = r"电量数据.csv"
 
 def get_electricity(max_retries=3):
     global cookies
@@ -216,7 +216,7 @@ def get_electricity(max_retries=3):
         del base_config['cookies']
         base_config['cookies'] = get_new_cookies()
         cookies=base_config['cookies']
-        write_config(r"F:\math64\小游戏\基础配置.json",base_config)
+        write_config(r"基础配置.json", base_config)
         retries += 1
 
         # 可选：添加延迟
@@ -231,7 +231,7 @@ def save_data(data):
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         current_quantity = float(data['quantity'])
         base_config["up_et"] = float(data['quantity'])
-        write_config(r"F:\math64\小游戏\基础配置.json",base_config)
+        write_config(r"基础配置.json", base_config)
 
         # 检查文件是否存在
         file_exists = os.path.isfile(DATA_FILE)
@@ -242,7 +242,7 @@ def save_data(data):
                 writer.writerow(['时间', '剩余电量（度）'])
             writer.writerow([current_time, current_quantity])
         time.sleep(3)
-        subprocess.run([r'F:\math64\.venv\Scripts\pythonw.exe', r'F:\math64\小游戏\最终图.py'], capture_output=True, text=True)
+        subprocess.run([r'F:/math64/.venv/Scripts/pythonw.exe', r'F:/math64/电费分析/作图.py'], capture_output=True, text=True)
 
 
 if __name__ == "__main__":
