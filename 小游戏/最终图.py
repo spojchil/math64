@@ -36,11 +36,9 @@ ax1.tick_params(axis='y', labelcolor=color)
 ax1.grid(True)
 
 zuixiadainl = df['Remaining_Energy'].iloc[-1]
-pengjjun5 = df['Power'].tail(5).mean()
-pengjjun15 = df['Power'].tail(15).mean()
-pengjjun = df['Power'].mean()
-print(pengjjun, pengjjun5, pengjjun15)
-
+pengjjun = (-1000 * df['Energy_Diff'].sum()) / df['Time_Diff'].sum()
+pengjjun5 = (-1000 * df['Energy_Diff'].tail(5).sum()) / df['Time_Diff'].tail(5).sum()
+pengjjun15 = (-1000 * df['Energy_Diff'].tail(15).sum()) / df['Time_Diff'].tail(15).sum()
 
 def seconds_to_dhms(seconds):
     days = seconds // 86400
