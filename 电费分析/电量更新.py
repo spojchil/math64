@@ -17,9 +17,9 @@ log_dir = Path(r"F:\math64\电费分析\logs")  # 日志目录
 log_dir.mkdir(parents=True, exist_ok=True)  # 自动创建目录
 
 logger.add(
-    log_dir / "runtime_{time}.log",  # 日志文件路径
+    log_dir / "runtime.log",  # 日志文件路径
     rotation="10 MB",                # 每个日志文件最大10MB
-    retention="3 days",              # 保留3天日志
+    retention="7 days",              # 保留3天日志
     compression="zip",               # 旧日志压缩保存
     encoding="utf-8",
     level="DEBUG",                   # 记录所有级别日志
@@ -313,15 +313,7 @@ def save_data(data):
                     encoding='utf-8'
                 )
 
-                # 记录子进程的标准输出
-                if result.stdout:
-                    logger.info(f"作图脚本输出:\n{result.stdout}")
-
-                # 记录子进程的错误输出
-                if result.stderr:
-                    logger.error(f"作图脚本错误:\n{result.stderr}")
-
-                # 检查子进程退出码
+                # 根据返回码判断成功与否
                 if result.returncode == 0:
                     logger.success("图表生成成功")
                 else:

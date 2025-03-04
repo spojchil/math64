@@ -34,4 +34,4 @@ def send_email_to_self(file_path):
         server.quit()
 
 # 使用示例
-send_email_to_self(r"电量图.png")
+#send_email_to_self(r"电量图.png")
