@@ -10,16 +10,12 @@ import subprocess
 # 新增在 imports 部分
 from loguru import logger
 import sys
-from pathlib import Path
-
-# 配置日志（添加到所有 import 之后，其他代码之前）
-log_dir = Path(r"F:\math64\电费分析\logs")  # 日志目录
-log_dir.mkdir(parents=True, exist_ok=True)  # 自动创建目录
+log_dir = r"F:\math64\电费分析\logs"  # 日志目录
 
 logger.add(
-    log_dir / "runtime.log",  # 日志文件路径
+    f"{log_dir} / 电量更新日志.log",  # 日志文件路径
     rotation="10 MB",                # 每个日志文件最大10MB
-    retention="7 days",              # 保留3天日志
+    retention=4,
     compression="zip",               # 旧日志压缩保存
     encoding="utf-8",
     level="DEBUG",                   # 记录所有级别日志
@@ -28,10 +24,10 @@ logger.add(
 
 # 添加单独的错误日志
 logger.add(
-    log_dir / "error.log",
+    f"{log_dir} / 错误日志.log",
     level="ERROR",
     rotation="10 MB",
-    retention="7 days",
+    retention=4 ,
     compression="zip",
     encoding="utf-8"
 )

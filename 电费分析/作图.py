@@ -6,13 +6,20 @@ import subprocess
 import sys
 # 配置日志（保存到文件，每天轮换，保留7天）
 log_dir = r"F:\math64\电费分析\logs"
-logger.add(f"{log_dir}/plot.log",
+logger.add(f"{log_dir}/作图日志.log",
            rotation="10 MB",
-           retention="7 days",
+           retention=4,  # 仅保留4个最新文件
+           compression="zip",  # 自动压缩旧日志（可选参数）
            format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
            level="DEBUG")
-
-
+logger.add(
+    f"{log_dir} / 错误日志.log",
+    level="ERROR",
+    rotation="10 MB",
+    retention=4 ,
+    compression="zip",
+    encoding="utf-8"
+)
 @logger.catch  # 自动捕获未处理的异常
 def main():
     plt.rcParams['font.sans-serif'] = ['SimHei']
