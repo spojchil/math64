@@ -13,7 +13,7 @@ logger.add(f"{log_dir}/作图日志.log",
            format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}",
            level="DEBUG")
 logger.add(
-    f"{log_dir} / 错误日志.log",
+    f"{log_dir}/错误日志.log",
     level="ERROR",
     rotation="10 MB",
     retention=4 ,

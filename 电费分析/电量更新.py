@@ -13,7 +13,7 @@ import sys
 log_dir = r"F:\math64\电费分析\logs"  # 日志目录
 
 logger.add(
-    f"{log_dir} / 电量更新日志.log",  # 日志文件路径
+    f"{log_dir}/电量更新日志.log",  # 日志文件路径
     rotation="10 MB",                # 每个日志文件最大10MB
     retention=4,
     compression="zip",               # 旧日志压缩保存
@@ -24,7 +24,7 @@ logger.add(
 
 # 添加单独的错误日志
 logger.add(
-    f"{log_dir} / 错误日志.log",
+    f"{log_dir}/错误日志.log",
     level="ERROR",
     rotation="10 MB",
     retention=4 ,
