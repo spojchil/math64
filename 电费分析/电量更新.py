@@ -6,6 +6,38 @@ import json
 from datetime import datetime
 import time
 import subprocess
+
+# 新增在 imports 部分
+from loguru import logger
+import sys
+from pathlib import Path
+
+# 配置日志（添加到所有 import 之后，其他代码之前）
+log_dir = Path(r"F:\math64\电费分析\logs")  # 日志目录
+log_dir.mkdir(parents=True, exist_ok=True)  # 自动创建目录
+
+logger.add(
+    log_dir / "runtime_{time}.log",  # 日志文件路径
+    rotation="10 MB",                # 每个日志文件最大10MB
+    retention="3 days",              # 保留3天日志
+    compression="zip",               # 旧日志压缩保存
+    encoding="utf-8",
+    level="DEBUG",                   # 记录所有级别日志
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+)
+
+# 添加单独的错误日志
+logger.add(
+    log_dir / "error.log",
+    level="ERROR",
+    rotation="10 MB",
+    retention="7 days",
+    compression="zip",
+    encoding="utf-8"
+)
+
+logger.info("====== 程序启动 ======")
+
 warnings.filterwarnings("ignore")
 def read_config(file_path):
     with open(file_path, 'r') as file:
@@ -17,36 +49,41 @@ def write_config(file_path, config_data):
 base_config=read_config(r"基础配置.json")
 # 第一步：登录获取 token
 def step1_login(username,password):
-    login_url = "https://mycas.haut.edu.cn/token/password/passwordLogin"
-    login_params = {
-        "username": username,
-        "password": password,
-        "appId": "com.supwisdom.haut",
-        "geo": "",
-        "deviceId": "ZO6cVuH+/1UDAElLPJpu7AFi",
-        "osType": "android",
-        "clientId": "b08f7f00db0e2a1a14a31517ae7592d3",
-        "mfaState": ""
-    }
-    headers = {
-        "User-Agent": "SWSuperApp/1.2.6(OPPOPGX110OPPO14)",
-        "Host": "mycas.haut.edu.cn",
-        "Connection": "Keep-Alive",
-        "Accept-Encoding": "gzip"
-    }
-    response = requests.post(login_url, params=login_params, headers=headers, verify=False)
-    if response.status_code == 200:
-        login_data = response.json()
-        if login_data["code"] == 0:
-            id_token = login_data["data"]["idToken"]
-            # print("Step 1: Login successful, id_token:", id_token)
-            return id_token
+    try:
+        logger.debug("开始执行登录流程")
+        login_url = "https://mycas.haut.edu.cn/token/password/passwordLogin"
+        login_params = {
+            "username": username,
+            "password": password,
+            "appId": "com.supwisdom.haut",
+            "geo": "",
+            "deviceId": "ZO6cVuH+/1UDAElLPJpu7AFi",
+            "osType": "android",
+            "clientId": "b08f7f00db0e2a1a14a31517ae7592d3",
+            "mfaState": ""
+        }
+        headers = {
+            "User-Agent": "SWSuperApp/1.2.6(OPPOPGX110OPPO14)",
+            "Host": "mycas.haut.edu.cn",
+            "Connection": "Keep-Alive",
+            "Accept-Encoding": "gzip"
+        }
+        response = requests.post(login_url, params=login_params, headers=headers, verify=False)
+
+        if response.status_code == 200:
+            login_data = response.json()
+            if login_data["code"] == 0:
+                logger.success("登录成功，获取到 id_token")
+                return login_data["data"]["idToken"]
+            else:
+                logger.error(f"登录失败 | 响应内容: {login_data}")
+                sys.exit(1)
         else:
-            print("Step 1: Login failed:", login_data)
-            exit()
-    else:
-        print("Step 1: Login request failed:", response.status_code)
-        exit()
+            logger.error(f"登录请求失败 | 状态码: {response.status_code}")
+            sys.exit(1)
+    except Exception as e:
+        logger.exception("登录过程中发生未捕获的异常")
+        sys.exit(1)
 
 # 第二步：获取重定向 URL 和 cookies
 def step2_get_redirect_url(id_token):
@@ -212,7 +249,7 @@ def get_electricity(max_retries=3):
             if is_cookie_valid(response):
                 return response.json()
 
-        print("Cookie 过期")
+        #print("Cookie 过期")
         del base_config['cookies']
         base_config['cookies'] = get_new_cookies()
         cookies=base_config['cookies']
