@@ -87,85 +87,99 @@ def step1_login(username,password):
 
 # 第二步：获取重定向 URL 和 cookies
 def step2_get_redirect_url(id_token):
-    url = "https://hub.17wanxiao.com/bsacs/light.action"
-    params = {
-        "flag": "supwisdomapp_hgdswjf",
-        "ecardFunc": "index",
-        "token": id_token
-    }
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 14; PGX110 Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 SuperApp",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "X-Requested-With": "com.supwisdom.haut",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-User": "?1",
-        "Sec-Fetch-Dest": "document",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
-    }
-    cookies = {
-        "userToken": id_token,
-        "Domain": "hub.17wanxiao.com",
-        "Path": "/"
-    }
-    response = requests.get(url, params=params, headers=headers, cookies=cookies, allow_redirects=False, verify=False)
-    if response.status_code == 302:
-        redirect_url = response.headers["Location"]
-        supwisdomapptoken = response.cookies.get('supwisdomapptoken')
-        sid = response.cookies.get('sid')
-        b_host = response.cookies.get('b_host')
-        # print("Step 2: Redirect URL:", redirect_url,response.cookies)
-        return redirect_url, response.cookies, supwisdomapptoken, sid, b_host
-    else:
-        print("Step 2: Failed to get redirect URL:", response.status_code, response.cookies)
-        exit()
+    try:
+        logger.debug("正在获取 cookies部分1")
+        url = "https://hub.17wanxiao.com/bsacs/light.action"
+        params = {
+            "flag": "supwisdomapp_hgdswjf",
+            "ecardFunc": "index",
+            "token": id_token
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Linux; Android 14; PGX110 Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 SuperApp",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "X-Requested-With": "com.supwisdom.haut",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-User": "?1",
+            "Sec-Fetch-Dest": "document",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
+        }
+        cookies = {
+            "userToken": id_token,
+            "Domain": "hub.17wanxiao.com",
+            "Path": "/"
+        }
+        response = requests.get(url, params=params, headers=headers, cookies=cookies, allow_redirects=False, verify=False)
+        if response.status_code == 302:
+            redirect_url = response.headers["Location"]
+            supwisdomapptoken = response.cookies.get('supwisdomapptoken')
+            sid = response.cookies.get('sid')
+            b_host = response.cookies.get('b_host')
+            logger.success("成功获取到 cookies部分1")
+            return redirect_url, response.cookies, supwisdomapptoken, sid, b_host
+        else:
+            logger.error(f"获取 cookies部分1失败 | 状态码: {response.status_code}")
+            sys.exit(1)
+    except Exception as e:
+        logger.exception("获取 cookies部分1异常")
+        sys.exit(1)
 
 # 第三步：获取授权码和新的 cookies
 def step3_get_auth_code(redirect_url, cookies):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 14; PGX110 Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 SuperApp",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "X-Requested-With": "com.supwisdom.haut",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-User": "?1",
-        "Sec-Fetch-Dest": "document",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
-    }
-    response = requests.get(redirect_url, headers=headers, cookies=cookies, allow_redirects=False, verify=False)
-    if response.status_code == 302:
-        auth_url = response.headers["Location"]
-        # print("Step 3: Auth URL:", auth_url,response.cookies)
-        return auth_url, response.cookies
-    else:
-        print("Step 3: Failed to get auth URL:", response.status_code)
-        exit()
+    try:
+        logger.debug("正在获取 cookies部分2")
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Linux; Android 14; PGX110 Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 SuperApp",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "X-Requested-With": "com.supwisdom.haut",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-User": "?1",
+            "Sec-Fetch-Dest": "document",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
+        }
+        response = requests.get(redirect_url, headers=headers, cookies=cookies, allow_redirects=False, verify=False)
+        if response.status_code == 302:
+            auth_url = response.headers["Location"]
+            logger.success("成功获取到 cookies部分2")
+            return auth_url, response.cookies
+        else:
+            logger.error(f"获取 cookies部分2失败 | 状态码: {response.status_code}")
+            sys.exit(1)
+    except Exception as e:
+        logger.exception("获取 cookies部分2异常")
+        sys.exit(1)
 
 # 第四步：获取最终的支付页面 URL 和 cookies
 def step4_get_payment_url(auth_url, cookies):
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Linux; Android 14; PGX110 Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 SuperApp",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-        "X-Requested-With": "com.supwisdom.haut",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-User": "?1",
-        "Sec-Fetch-Dest": "document",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
-    }
-    response = requests.get(auth_url, headers=headers, cookies=cookies, allow_redirects=False, verify=False)
-    if response.status_code == 302:
-        payment_url = response.headers["Location"]
-        SESSION = response.cookies.get('SESSION')
-        # print("Step 4: Payment URL:", payment_url,response.cookies)
-        return payment_url, response.cookies, SESSION
-    else:
-        print("Step 4: Failed to get payment URL:", response.status_code)
-        exit()
-
+    try:
+        logger.debug("正在获取 cookies部分3")
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Linux; Android 14; PGX110 Build/SP1A.210812.016; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/117.0.0.0 Mobile Safari/537.36 SuperApp",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "X-Requested-With": "com.supwisdom.haut",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-User": "?1",
+            "Sec-Fetch-Dest": "document",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7"
+        }
+        response = requests.get(auth_url, headers=headers, cookies=cookies, allow_redirects=False, verify=False)
+        if response.status_code == 302:
+            payment_url = response.headers["Location"]
+            SESSION = response.cookies.get('SESSION')
+            logger.success("成功获取到 cookies部分3")
+            return payment_url, response.cookies, SESSION
+        else:
+            logger.error(f"获取 cookies部分3失败 | 状态码: {response.status_code}")
+            sys.exit(1)
+    except Exception as e:
+        logger.exception("获取 cookies部分3异常")
+        sys.exit(1)
 # 第五步：获取cookies
 def step5_get_cookies(supwisdomapptoken, sid, b_host, SESSION):
     cookies = {
@@ -239,57 +253,96 @@ cookies = base_config['cookies']
 DATA_FILE = r"电量数据.csv"
 
 def get_electricity(max_retries=3):
-    global cookies
-    global base_config
+    global cookies,base_config
     retries = 0
+
+    logger.info(f"开始查询电费数据，最大重试次数: {max_retries}")
     while retries < max_retries:
-        response = requests.get(url, headers=headers, params=params, verify=False, cookies=cookies)
+        try:
+            logger.debug(f"第 {retries + 1} 次尝试请求接口")
+            response = requests.get(url, headers=headers, params=params, verify=False, cookies=cookies)
 
-        if response.status_code == 200:
-            if is_cookie_valid(response):
-                return response.json()
+            if response.status_code == 200:
+                if is_cookie_valid(response):
+                    logger.success("成功获取有效电费数据")
+                    return response.json()
 
-        #print("Cookie 过期")
-        del base_config['cookies']
-        base_config['cookies'] = get_new_cookies()
-        cookies=base_config['cookies']
-        write_config(r"基础配置.json", base_config)
-        retries += 1
+                logger.warning("Cookie 已过期，触发更新流程")
+                del base_config['cookies']
+                base_config['cookies'] = get_new_cookies()
+                cookies = base_config['cookies']
+                write_config(r"基础配置.json", base_config)
+                logger.info("Cookie 更新完成，等待重试...")
+                time.sleep(10)
+                retries += 1
+            else:
+                logger.error(f"接口请求失败 | 状态码: {response.status_code}")
+                retries += 1
+        except Exception as e:
+            logger.exception("电费数据获取过程中发生异常")
+            retries += 1
 
-        # 可选：添加延迟
-        time.sleep(10)
-
-    print("Failed to acquire valid electricity data after multiple retries.")
+    logger.critical("达到最大重试次数仍未获取有效数据")
     return None
 
 def save_data(data):
-    """保存数据到CSV文件"""
-    if base_config["up_et"]!=float(data['quantity']):
-        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        current_quantity = float(data['quantity'])
-        base_config["up_et"] = float(data['quantity'])
-        write_config(r"基础配置.json", base_config)
+    try:
+        logger.debug("进入数据保存流程")
+        if base_config["up_et"]!=float(data['quantity']):
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            current_quantity = float(data['quantity'])
+            logger.info(f"检测到电量变化: {base_config['up_et']} -> {current_quantity}")
+            base_config["up_et"] = float(data['quantity'])
+            write_config(r"基础配置.json", base_config)
 
-        # 检查文件是否存在
-        file_exists = os.path.isfile(DATA_FILE)
+            # 检查文件是否存在
+            file_exists = os.path.isfile(DATA_FILE)
 
-        with open(DATA_FILE, 'a', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            if not file_exists:
-                writer.writerow(['时间', '剩余电量（度）'])
-            writer.writerow([current_time, current_quantity])
-        time.sleep(3)
-        subprocess.run([r'F:/math64/.venv/Scripts/pythonw.exe', r'F:/math64/电费分析/作图.py'], capture_output=True, text=True)
+            with open(DATA_FILE, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                if not file_exists:
+                    writer.writerow(['时间', '剩余电量（度）'])
+                writer.writerow([current_time, current_quantity])
+            time.sleep(3)
+            try:
+                logger.debug("启动图表生成子进程")
+                result = subprocess.run(
+                    [r'F:/math64/.venv/Scripts/pythonw.exe', r'F:/math64/电费分析/作图.py'],
+                    capture_output=True,
+                    text=True,
+                    encoding='utf-8'
+                )
 
+                # 记录子进程的标准输出
+                if result.stdout:
+                    logger.info(f"作图脚本输出:\n{result.stdout}")
 
+                # 记录子进程的错误输出
+                if result.stderr:
+                    logger.error(f"作图脚本错误:\n{result.stderr}")
+
+                # 检查子进程退出码
+                if result.returncode == 0:
+                    logger.success("图表生成成功")
+                else:
+                    logger.error(f"图表生成失败 | 错误码: {result.returncode}")
+            except Exception as e:
+                logger.exception("执行子进程时发生异常")
+    except Exception as e:
+        logger.exception("数据保存过程中发生异常")
 if __name__ == "__main__":
-    # 获取数据
-    data = get_electricity()
+    try:
+        logger.info("====== 主程序开始执行 ======")
+        data = get_electricity()
 
-    if data and data.get('returncode') == '100':
-        #print(f"当前剩余电量：{data['quantity']} 度")
+        if data and data.get('returncode') == '100':
+            logger.success(f"成功获取电量数据: {data['quantity']} 度")
+            save_data(data)
+        else:
+            logger.error("获取数据失败，返回码无效")
+            sys.exit(1)
 
-        # 保存数据并生成图表
-        save_data(data)
-    else:
-        print("获取数据失败，请检查网络或参数")
+        logger.info("====== 程序正常结束 ======")
+    except Exception as e:
+        logger.exception("主程序发生未捕获异常")
+        sys.exit(1)
