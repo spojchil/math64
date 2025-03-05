@@ -5,7 +5,7 @@ import time
 import subprocess
 import sys
 # 配置日志（保存到文件，每天轮换，保留7天）
-log_dir = r"F:\math64\电费分析\logs"
+log_dir = r"logs"
 logger.add(f"{log_dir}/作图日志.log",
            rotation="10 MB",
            retention=4,  # 仅保留4个最新文件

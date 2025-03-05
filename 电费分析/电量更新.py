@@ -10,7 +10,7 @@ import subprocess
 # 新增在 imports 部分
 from loguru import logger
 import sys
-log_dir = r"F:\math64\电费分析\logs"  # 日志目录
+log_dir = r"logs"  # 日志目录
 
 logger.add(
     f"{log_dir}/电量更新日志.log",  # 日志文件路径
@@ -303,7 +303,7 @@ def save_data(data):
             try:
                 logger.debug("启动图表生成子进程")
                 result = subprocess.run(
-                    [r'F:/math64/.venv/Scripts/pythonw.exe', r'F:/math64/电费分析/作图.py'],
+                    [r'../.venv/Scripts/pythonw.exe', r'../电费分析/作图.py'],
                     capture_output=True,
                     text=True,
                     encoding='utf-8'
