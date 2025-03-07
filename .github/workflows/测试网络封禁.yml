@@ -1,0 +1,8 @@
+- name: Network Debug
+  run: |
+    # 测试 DNS 解析
+    nslookup h5cloud.17wanxiao.com
+    # 测试端口连通性
+    timeout 5 bash -c "cat < /dev/null > /dev/tcp/h5cloud.17wanxiao.com/18443" && echo "Port Open" || echo "Port Closed"
+    # 打印完整路由跟踪
+    traceroute h5cloud.17wanxiao.com
