@@ -11,7 +11,7 @@ log_dir = os.path.join(current_dir, "logs")
 os.makedirs(log_dir, exist_ok=True)
 
 logger.add(
-    os.path.join(log_dir, "邮件日志.log"),
+    os.path.join(log_dir, "电费分析/邮件日志.log"),
     rotation="10 MB",
     retention=4,
     compression="zip",
@@ -39,10 +39,10 @@ def send_email():
         msg.attach(MIMEText(body, 'plain'))
 
         # 添加附件
-        attachment_path = os.path.join(current_dir, "output", "电量图.png")
+        attachment_path = os.path.join(current_dir, "output", "电费分析/电量图.png")
         with open(attachment_path, "rb") as f:
-            attachment = MIMEApplication(f.read(), Name="电量图.png")
-            attachment['Content-Disposition'] = f'attachment; filename="电量图.png"'
+            attachment = MIMEApplication(f.read(), Name="电费分析/电量图.png")
+            attachment['Content-Disposition'] = f'attachment; filename="电费分析/电量图.png"'
             msg.attach(attachment)
 
         # 发送邮件

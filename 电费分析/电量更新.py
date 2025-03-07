@@ -10,8 +10,8 @@ import subprocess
 # 新增在 imports 部分
 from loguru import logger
 import sys
-log_dir = os.path.join(os.getcwd(), "logs")
-DATA_FILE = os.path.join(os.getcwd(), "电量数据.csv")
+log_dir = os.path.join(os.getcwd(), "电费分析/logs")
+DATA_FILE = os.path.join(os.getcwd(), "电费分析/电量数据.csv")
 
 logger.add(
     f"{log_dir}/电量更新日志.log",  # 日志文件路径
@@ -43,7 +43,7 @@ def read_config(file_path):
 def write_config(file_path, config_data):
     with open(file_path, 'w') as file:
         json.dump(config_data, file, indent=4)
-base_config=read_config(r"基础配置.json")
+base_config=read_config(r"电费分析/基础配置.json")
 # 第一步：登录获取 token
 def step1_login(username,password):
     try:
@@ -267,7 +267,7 @@ def get_electricity(max_retries=3):
                 del base_config['cookies']
                 base_config['cookies'] = get_new_cookies()
                 cookies = base_config['cookies']
-                write_config(r"基础配置.json", base_config)
+                write_config(r"电费分析/基础配置.json", base_config)
                 logger.info("Cookie 更新完成，等待重试...")
                 time.sleep(10)
                 retries += 1
@@ -289,7 +289,7 @@ def save_data(data):
             current_quantity = float(data['quantity'])
             logger.info(f"检测到电量变化: {base_config['up_et']} -> {current_quantity}")
             base_config["up_et"] = float(data['quantity'])
-            write_config(r"基础配置.json", base_config)
+            write_config(r"电费分析/基础配置.json", base_config)
 
             # 检查文件是否存在
             file_exists = os.path.isfile(DATA_FILE)
@@ -303,7 +303,7 @@ def save_data(data):
             try:
                 logger.debug("启动图表生成子进程")
                 result = subprocess.run(
-                    ["python", "作图.py"],
+                    ["python", "电费分析/作图.py"],
                     capture_output=True,
                     text=True,
                     encoding='utf-8'

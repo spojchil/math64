@@ -5,7 +5,7 @@ import time
 import subprocess
 import sys
 # 配置日志（保存到文件，每天轮换，保留7天）
-log_dir = r"logs"
+log_dir = r"电费分析/logs"
 logger.add(f"{log_dir}/作图日志.log",
            rotation="10 MB",
            retention=4,  # 仅保留4个最新文件
@@ -28,7 +28,7 @@ def main():
     try:
         # 记录文件读取操作
         logger.info("开始读取电量数据文件")
-        df = pd.read_csv(r'电量数据.csv', header=None, names=['Time', 'Remaining_Energy'])
+        df = pd.read_csv(r'电费分析/电量数据.csv', header=None, names=['Time', 'Remaining_Energy'])
         logger.success(f"成功读取数据，共{len(df)}条记录")
     except FileNotFoundError:
         logger.error("电量数据文件未找到，请确认文件路径")
@@ -113,7 +113,7 @@ def main():
         plt.figtext(0.8, 0.9, f'平均功率{pengjjun:.2f}瓦，距离用完还有{shengyv}', fontsize=12, color='blue', ha='center')
 
         # 保存图表
-        output_files = [r'电量图.png']
+        output_files = [r'电费分析/电量图.png']
         for path in output_files:
             try:
                 plt.savefig(path, dpi=300)
@@ -131,7 +131,7 @@ def main():
         logger.info("准备发送邮件")
         cmd = [
             'python',
-            r'邮件发送.py'
+            r'电费分析/邮件发送.py'
         ]
 
         result = subprocess.run(cmd, capture_output=True, text=True,encoding='utf-8')
