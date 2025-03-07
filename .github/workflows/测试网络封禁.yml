@@ -1,5 +1,5 @@
-- name: Network Debug
-  run: |
+name: Network Debug
+run: |
     # 测试 DNS 解析
     nslookup h5cloud.17wanxiao.com
     # 测试端口连通性
