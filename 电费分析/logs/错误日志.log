@@ -1,0 +1,6 @@
+2025-03-04 21:40:38.744 | ERROR    | __main__:main:37 - 读取文件时发生未知错误: Error tokenizing data. C error: Expected 2 fields in line 46, saw 3
+
+2025-03-04 21:40:39.199 | ERROR    | __main__:save_data:316 - 图表生成失败 | 错误码: 1
+2025-03-04 22:11:27.109 | ERROR    | __main__:main:37 - 读取文件时发生未知错误: Error tokenizing data. C error: Expected 2 fields in line 46, saw 3
+
+2025-03-04 22:11:27.260 | ERROR    | __main__:save_data:316 - 图表生成失败 | 错误码: 1

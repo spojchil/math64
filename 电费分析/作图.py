@@ -113,7 +113,7 @@ def main():
         plt.figtext(0.8, 0.9, f'平均功率{pengjjun:.2f}瓦，距离用完还有{shengyv}', fontsize=12, color='blue', ha='center')
 
         # 保存图表
-        output_files = [r'电量图.png', r"C:/Users/20695/Desktop/电量图.png"]
+        output_files = [r'电量图.png']
         for path in output_files:
             try:
                 plt.savefig(path, dpi=300)
@@ -130,8 +130,8 @@ def main():
     try:
         logger.info("准备发送邮件")
         cmd = [
-            r'F:/math64/.venv/Scripts/pythonw.exe',
-            r'F:/math64/电费分析/邮件发送.py'
+            'python',
+            r'邮件发送.py'
         ]
 
         result = subprocess.run(cmd, capture_output=True, text=True,encoding='utf-8')

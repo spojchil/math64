@@ -10,7 +10,8 @@ import subprocess
 # 新增在 imports 部分
 from loguru import logger
 import sys
-log_dir = r"logs"  # 日志目录
+log_dir = os.path.join(os.getcwd(), "logs")
+DATA_FILE = os.path.join(os.getcwd(), "电量数据.csv")
 
 logger.add(
     f"{log_dir}/电量更新日志.log",  # 日志文件路径
@@ -217,7 +218,8 @@ def is_cookie_valid(response):
 
 # 定义请求的URL
 url = "https://h5cloud.17wanxiao.com:18443/CloudPayment/user/getRoomState.do"
-roomverify = base_config["roomverify"]
+#roomverify = base_config["roomverify"]
+roomverify = os.getenv('ROOMVERIFY')
 params = {
     "payProId": 726,
     "schoolcode": 43,
@@ -245,8 +247,6 @@ headers = {
 
 cookies = base_config['cookies']
 
-# 数据存储文件
-DATA_FILE = r"电量数据.csv"
 
 def get_electricity(max_retries=3):
     global cookies,base_config
@@ -303,7 +303,7 @@ def save_data(data):
             try:
                 logger.debug("启动图表生成子进程")
                 result = subprocess.run(
-                    [r'../.venv/Scripts/pythonw.exe', r'../电费分析/作图.py'],
+                    ["python", "作图.py"],
                     capture_output=True,
                     text=True,
                     encoding='utf-8'
