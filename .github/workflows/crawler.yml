@@ -23,9 +23,9 @@ jobs:
     # 注入 Secrets 到配置文件（不覆盖已有数据）
     - name: Inject secrets into config
       run: |
-        sed -i "s/__SECRET_USERNAME__/${{ secrets.USERNAME }}/g" 基础配置.json
-        sed -i "s/__SECRET_PASSWORD__/${{ secrets.PASSWORD }}/g" 基础配置.json
-        sed -i "s/__SECRET_ROOMVERIFY__/${{ secrets.ROOMVERIFY }}/g" 基础配置.json
+        sed -i "s/__SECRET_USERNAME__/${{ secrets.USERNAME }}/g" 电费分析/基础配置.json
+        sed -i "s/__SECRET_PASSWORD__/${{ secrets.PASSWORD }}/g" 电费分析/基础配置.json
+        sed -i "s/__SECRET_ROOMVERIFY__/${{ secrets.ROOMVERIFY }}/g" 电费分析/基础配置.json
 
     # 安装依赖
     - name: Install dependencies
@@ -34,7 +34,7 @@ jobs:
 
     # 运行爬虫
     - name: Run crawler
-      run: python 电量更新.py
+      run: python 电费分析/电量更新.py
 
     # 提交更新（包含配置文件）
     - name: Commit results
@@ -42,8 +42,8 @@ jobs:
       run: |
         git config --global user.name "GitHub Actions"
         git config --global user.email "actions@github.com"
-        git add 电量数据.csv
+        git add 电费分析/电量数据.csv
         git add logs/*.log
-        git add 基础配置.json
+        git add 电费分析/基础配置.json
         git commit -m "Auto-update data, logs, and config" || echo "No changes"
         git push
