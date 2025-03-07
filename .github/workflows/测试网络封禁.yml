@@ -1,8 +1,58 @@
-name: Network Debug
-run: |
-    # 测试 DNS 解析
-    nslookup h5cloud.17wanxiao.com
-    # 测试端口连通性
-    timeout 5 bash -c "cat < /dev/null > /dev/tcp/h5cloud.17wanxiao.com/18443" && echo "Port Open" || echo "Port Closed"
-    # 打印完整路由跟踪
-    traceroute h5cloud.17wanxiao.com
+name: Website Block Test
+
+on:
+  #schedule:
+  #  - cron: '0 */6 * * *'  # 每6小时测试一次
+  workflow_dispatch:        # 允许手动触发
+
+env:
+  TARGET_URL: "https://h5cloud.17wanxiao.com:18443"  # 替换为需要测试的URL
+  TEST_PORT: 18443                                   # 替换为需要测试的端口
+
+jobs:
+  connectivity-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Install Network Tools
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          curl \
+          dnsutils \
+          netcat-openbsd \
+          traceroute
+
+    - name: Run Connectivity Tests
+      run: |
+        # 创建测试结果目录
+        mkdir -p test-results
+        
+        # 基础连通性测试
+        echo "=== DNS Resolution ===" | tee test-results/report.log
+        nslookup $(echo $TARGET_URL | awk -F[/:] '{print $4}') | tee -a test-results/report.log
+        
+        echo "\n=== TCP Port Check ===" | tee -a test-results/report.log
+        nc -zv -w 5 $(echo $TARGET_URL | awk -F[/:] '{print $4}') $TEST_PORT 2>&1 | tee -a test-results/report.log
+        
+        echo "\n=== HTTP Status Check ===" | tee -a test-results/report.log
+        curl -sSLI $TARGET_URL -o /dev/null -w "%{http_code}" -m 10 2>&1 | tee -a test-results/report.log
+        
+        echo "\n=== Traceroute ===" | tee -a test-results/report.log
+        traceroute -m 15 -w 2 $(echo $TARGET_URL | awk -F[/:] '{print $4}') | tee -a test-results/report.log
+
+    - name: Upload Test Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: connectivity-report
+        path: test-results/report.log
+
+    - name: Send Notification
+      if: failure()
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_COLOR: danger
+        SLACK_TITLE: "Website Block Alert"
+        SLACK_MESSAGE: "Connection failed to ${{ env.TARGET_URL }}"
