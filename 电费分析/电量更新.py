@@ -328,7 +328,7 @@ def save_data(data):
 
 if __name__ == "__main__":
     try:
-        logger.debug(f"当前配置参数: {params}")
+        logger.debug(f"当前配置参数: {base_config}")
         logger.debug(f"当前cookies: {cookies}")
         logger.info("====== 主程序开始执行 ======")
         data = get_electricity()
