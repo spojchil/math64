@@ -10,11 +10,16 @@ import subprocess
 # 新增在 imports 部分
 from loguru import logger
 import sys
-log_dir = os.path.join(os.getcwd(), "电费分析/logs")
-DATA_FILE = os.path.join(os.getcwd(), "电费分析/电量数据.csv")
+# 获取当前脚本所在目录
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 配置文件路径
+CONFIG_PATH = os.path.join(BASE_DIR, "基础配置.json")
+DATA_FILE = os.path.join(BASE_DIR, "电量数据.csv")
+LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 logger.add(
-    f"{log_dir}/电量更新日志.log",  # 日志文件路径
+    f"{LOG_DIR}/电量更新日志.log",  # 日志文件路径
     rotation="10 MB",                # 每个日志文件最大10MB
     retention=4,
     compression="zip",               # 旧日志压缩保存
@@ -25,7 +30,7 @@ logger.add(
 
 # 添加单独的错误日志
 logger.add(
-    f"{log_dir}/错误日志.log",
+    f"{LOG_DIR}/错误日志.log",
     level="ERROR",
     rotation="10 MB",
     retention=4 ,
@@ -43,7 +48,7 @@ def read_config(file_path):
 def write_config(file_path, config_data):
     with open(file_path, 'w') as file:
         json.dump(config_data, file, indent=4)
-base_config=read_config(r"电费分析/基础配置.json")
+base_config=read_config(CONFIG_PATH)
 # 第一步：登录获取 token
 def step1_login(username,password):
     try:
@@ -320,6 +325,7 @@ def save_data(data):
                 logger.exception("执行子进程时发生异常")
     except Exception as e:
         logger.exception("数据保存过程中发生异常")
+
 if __name__ == "__main__":
     try:
         logger.debug(f"当前配置参数: {params}")
