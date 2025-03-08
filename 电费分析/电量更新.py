@@ -225,8 +225,7 @@ def is_cookie_valid(response):
 
 # 定义请求的URL
 url = "https://h5cloud.17wanxiao.com:18443/CloudPayment/user/getRoomState.do"
-#roomverify = base_config["roomverify"]
-roomverify = os.getenv('ROOMVERIFY')
+roomverify = base_config["roomverify"]
 params = {
     "payProId": 726,
     "schoolcode": 43,
