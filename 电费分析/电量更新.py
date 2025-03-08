@@ -249,7 +249,6 @@ headers = {
 
 cookies = base_config['cookies']
 
-
 def get_electricity(max_retries=3):
     global cookies,base_config
     retries = 0
@@ -323,6 +322,8 @@ def save_data(data):
         logger.exception("数据保存过程中发生异常")
 if __name__ == "__main__":
     try:
+        logger.debug(f"当前配置参数: {params}")
+        logger.debug(f"当前cookies: {cookies}")
         logger.info("====== 主程序开始执行 ======")
         data = get_electricity()
 
