@@ -30,6 +30,9 @@ jobs:
         pip install --upgrade pip
         pip install -r requirements.txt
 
+    env: # ✅ 必须在此处或 job 级别定义
+      ROOMVERIFY: ${{ secrets.ROOMVERIFY }}
+
     # 运行测试
     - name: 运行测试
       run: |
