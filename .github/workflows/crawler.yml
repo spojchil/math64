@@ -1,8 +1,6 @@
 name: Run Electric Monitor
 
 on:
-  #schedule:
-  #  - cron: '*/30 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -16,27 +14,38 @@ jobs:
       uses: actions/cache@v3
       id: cache-pip
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: ${{ runner.os }}-pip-
+        path: |
+          ~/.cache/pip
+          venv/
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
 
-    # 注入 Secrets 到配置文件（不覆盖已有数据）
+    # 注入 Secrets 到配置文件
     - name: Inject secrets into config
       run: |
         sed -i "s/__SECRET_USERNAME__/${{ secrets.USERNAME }}/g" 电费分析/基础配置.json
         sed -i "s/__SECRET_PASSWORD__/${{ secrets.PASSWORD }}/g" 电费分析/基础配置.json
         sed -i "s/__SECRET_ROOMVERIFY__/${{ secrets.ROOMVERIFY }}/g" 电费分析/基础配置.json
+        echo "配置验证结果："
+        cat 电费分析/基础配置.json
 
     # 安装依赖
     - name: Install dependencies
       if: steps.cache-pip.outputs.cache-hit != 'true'
-      run: pip install -r requirements.txt
+      run: |
+        python -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
 
     # 运行爬虫
     - name: Run crawler
-      run: python 电费分析/电量更新.py
+      run: |
+        source venv/bin/activate
+        python 电费分析/电量更新.py
 
-    # 提交更新（包含配置文件）
+    # 提交更新
     - name: Commit results
       if: success()
       run: |
@@ -44,6 +53,6 @@ jobs:
         git config --global user.email "actions@github.com"
         git add 电费分析/电量数据.csv
         git add logs/*.log
-        git add 电费分析/基础配置.json
-        git commit -m "Auto-update data, logs, and config" || echo "No changes"
+        git restore --staged 电费分析/基础配置.json
+        git commit -m "Auto-update data and logs" || echo "No changes"
         git push
