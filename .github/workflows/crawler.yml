@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
 
 jobs:
+  env:
+    ROOMVERIFY: ${{ secrets.ROOMVERIFY }}
   monitor:
     runs-on: ubuntu-latest
     steps:
