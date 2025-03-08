@@ -25,6 +25,7 @@ jobs:
     - name: 安装依赖
       if: steps.cache-pip.outputs.cache-hit != 'true'
       run: |
+        echo "验证值: $ROOMVERIFY"  # 检查是否能输出正确值
         python -m venv venv
         source venv/bin/activate
         pip install --upgrade pip
@@ -32,7 +33,6 @@ jobs:
 
       env: # ✅ 必须在此处或 job 级别定义
         ROOMVERIFY: ${{ secrets.ROOMVERIFY }}
-
     # 运行测试
     - name: 运行测试
       run: |
