@@ -1,170 +1,204 @@
 class PBN:
-    def __init__(self, value, base=10, digits="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
+
+    def __init__(self, value, base=10, jbiao="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
         self.base = base
-        self.digits = digits
-        if len(digits) != len(set(digits)):
-            raise ValueError("Digits must be unique")
+        self.jbiao = jbiao
+        if len(jbiao) != len(set(jbiao)):
+            raise ValueError("jbiao中标志不唯一")
         if isinstance(value, int):
             self.decimal_value = value
-            self.sign = 1 if value >= 0 else -1
-            abs_value = abs(value)
-            self.p_base_str = self._decimal_to_p_base(abs_value, base)
+            if value >= 0:
+                self.fuhao = 1
+                self.p_base_value = self._decimal_to_p_base(value, base)
+            else:
+                self.fuhao = -1
+                self.p_base_value = self._decimal_to_p_base(-value, base)
         elif isinstance(value, str):
-            value = value.strip()
-            if not value:
-                raise ValueError("Empty string invalid")
-            self.sign, num_part = self._parse_sign(value)
-            self._validate_num_part(num_part, base)
-            self.p_base_str = ('-' if self.sign == -1 else '') + num_part
-            self.decimal_value = self._p_base_to_decimal(num_part, base) * self.sign
+            # 如果传入的是字符串，则解析为十进制值，并存储原始字符串
+            if not PBN.jiace(value, jbiao[:base]):
+                raise ValueError("与基底不符")
+            self.p_base_value = value
+            self.decimal_value = self._p_base_to_decimal(value, base)
         else:
-            raise ValueError("Value must be int or str")
-
-    def _parse_sign(self, value_str):
-        sign = 1
-        if value_str[0] == '-':
-            sign = -1
-            num_part = value_str[1:].lstrip()
-        elif value_str[0] == '+':
-            num_part = value_str[1:].lstrip()
-        else:
-            num_part = value_str
-        if not num_part:
-            raise ValueError("Missing numeric part")
-        return sign, num_part
-
-    def _validate_num_part(self, num_part, base):
-        valid_chars = self.digits[:base]
-        for c in num_part:
-            if c not in valid_chars:
-                raise ValueError(f"Character '{c}' not in base {base} digits")
+            raise ValueError("必须是整数或者字符串")
 
     def _decimal_to_p_base(self, decimal_value, base):
-        if base < 2 or base > len(self.digits):
-            raise ValueError("Invalid base")
+        """将十进制数转换为p进制字符串"""
+        if base < 2 or base > len(self.jbiao):
+            raise ValueError("与基底不符")
         if decimal_value == 0:
             return '0'
         digits = []
-        while decimal_value > 0:
+        while decimal_value != 0:
             digits.append(decimal_value % base)
             decimal_value //= base
-        return ''.join(self.digits[i] for i in reversed(digits))
+        fuh = '-' if self.fuhao == -1 else ''
+        return fuh + ''.join(self.jbiao[i] for i in digits[::-1])
 
-    def _p_base_to_decimal(self, num_str, base):
-        decimal = 0
-        for i, char in enumerate(reversed(num_str)):
-            decimal += self.digits.index(char) * (base ​** i)
-        return decimal
+    def _p_base_to_decimal(self, p_base_value, base):
+        """将p进制字符串转换为十进制数"""
+        if "-" in p_base_value:
+            fuhao = -1
+            p_base_value = p_base_value.replace("-", "")
+        else:
+            fuhao = 1
+        decimal_value = 0
+        wezhi = [self.jbiao.find(char) for char in p_base_value]
+        for i in range(len(p_base_value)):
+            j = wezhi[::-1][i]
+            decimal_value += j * (base ** i)
+        return fuhao * decimal_value
 
-    def to_base(self, new_base):
-        return PBN(self.decimal_value, new_base, self.digits)
+    def to_base(self, new_base=10):
+        """
+        将当前对象转换为指定进制的 PBN 对象。
+        """
+        return PBN(self.decimal_value, new_base)
+
+    @staticmethod
+    def jiace(sub, main):
+        main = main + "-"
+        for char in sub:
+            if char not in main:
+                return False
+        return True
 
     def __str__(self):
-        return self.p_base_str
-
-    def _convert_other(self, other):
-        if isinstance(other, int):
-            return PBN(other, self.base, self.digits)
-        elif isinstance(other, PBN):
-            return other.to_base(self.base)
-        return NotImplemented
+        """
+        返回对象的 p 进制字符串表示。
+        """
+        return self.p_base_value
 
     def __add__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        new_decimal = self.decimal_value + other.decimal_value
-        return PBN(new_decimal, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = self.decimal_value + other.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
-    __radd__ = __add__
+    def __radd__(self, other):
+        return self.__add__(other)
 
     def __sub__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        new_decimal = self.decimal_value - other.decimal_value
-        return PBN(new_decimal, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = self.decimal_value - other.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
     def __rsub__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        return PBN(other.decimal_value - self.decimal_value, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = -self.decimal_value + other.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
     def __mul__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        new_decimal = self.decimal_value * other.decimal_value
-        return PBN(new_decimal, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = self.decimal_value * other.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
-    __rmul__ = __mul__
+    def __rmul__(self, other):
+        return self.__mul__(other)
 
     def __mod__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        new_decimal = self.decimal_value % other.decimal_value
-        return PBN(new_decimal, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = self.decimal_value % other.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
     def __rmod__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        return PBN(other.decimal_value % self.decimal_value, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = other.decimal_value % self.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
-    def __pow__(self, exponent):
-        exponent = self._convert_other(exponent)
-        if exponent is NotImplemented or exponent.decimal_value < 0:
+    def __pow__(self, other):
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        new_decimal = self.decimal_value ​** exponent.decimal_value
-        return PBN(new_decimal, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        if other.decimal_value < 0:
+            raise ValueError("指数不可以为负")
+        new_decimal_value = pow(self.decimal_value, other.decimal_value)
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
-    def __rpow__(self, base):
-        base = self._convert_other(base)
-        if base is NotImplemented or self.decimal_value < 0:
+    def __rpow__(self, other):
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        new_decimal = base.decimal_value ​** self.decimal_value
-        return PBN(new_decimal, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        if self.decimal_value < 0:
+            raise ValueError("指数不可以为负")
+        new_decimal_value = pow(other.decimal_value, self.decimal_value)
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
-    def mod_pow(self, base, exponent):
-        base = self._convert_other(base)
-        exponent = self._convert_other(exponent)
-        if exponent.decimal_value < 0:
-            raise ValueError("Negative exponent not allowed")
-        result = pow(base.decimal_value, exponent.decimal_value, self.decimal_value)
-        return PBN(result, self.base, self.digits)
+    def mod_pow(self, jishu, zhishu):
+        if not isinstance(jishu, PBN):
+            jishu = PBN(jishu, self.base)
+        if not isinstance(zhishu, PBN):
+            zhishu = PBN(zhishu, self.base)
+        if zhishu.decimal_value < 0:
+            raise ValueError("指数不可以为负")
+        new_decimal_value = pow(jishu.decimal_value, zhishu.decimal_value, self.decimal_value)
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
     def __floordiv__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        new_decimal = self.decimal_value // other.decimal_value
-        return PBN(new_decimal, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = self.decimal_value // other.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
     def __rfloordiv__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
+        if not isinstance(other, (int, PBN)):
             return NotImplemented
-        return PBN(other.decimal_value // self.decimal_value, self.base, self.digits)
+        if isinstance(other, int):
+            other = PBN(other)
+        new_decimal_value = other.decimal_value // self.decimal_value
+        return PBN(new_decimal_value, self.base, self.jbiao)
 
     def __neg__(self):
-        return PBN(-self.decimal_value, self.base, self.digits)
+        return PBN(-self.decimal_value, self.base,self.jbiao)
 
     def __eq__(self, other):
-        other = self._convert_other(other)
-        return other is not NotImplemented and self.decimal_value == other.decimal_value
+        if not isinstance(other, (int, PBN)):
+            return NotImplemented
+        if isinstance(other, int):
+            other = PBN(other)
+        return self.decimal_value == other.decimal_value
 
     def __ne__(self, other):
-        return not self == other
+        if not isinstance(other, (int, PBN)):
+            return NotImplemented
+        if isinstance(other, int):
+            other = PBN(other)
+        return not self.decimal_value == other.decimal_value
 
     def __gt__(self, other):
-        other = self._convert_other(other)
-        return other is not NotImplemented and self.decimal_value > other.decimal_value
+        if not isinstance(other, (int, PBN)):
+            return NotImplemented
+        if isinstance(other, int):
+            other = PBN(other)
+        return self.decimal_value > other.decimal_value
 
     def __lt__(self, other):
-        other = self._convert_other(other)
-        return other is not NotImplemented and self.decimal_value < other.decimal_value
+        if not isinstance(other, (int, PBN)):
+            return NotImplemented
+        if isinstance(other, int):
+            other = PBN(other)
+        return self.decimal_value < other.decimal_value
 
     def __ge__(self, other):
         return self > other or self == other
@@ -173,102 +207,121 @@ class PBN:
         return self < other or self == other
 
 
+# noinspection PyUnboundLocalVariable,PyTypeChecker
 class PBNF:
-    def __init__(self, numerator, denominator=1, base=10, digits="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
+    def __init__(self, fenzi, fenmu=1, base=10, jbiao="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"):
         self.base = base
-        self.digits = digits
-        self.numerator, self.denominator = self._normalize(numerator, denominator)
+        self.jbiao = jbiao
+        self.fenzi, self.fenmu = self._biaozhuih(fenzi, fenmu)
 
-    def _normalize(self, num, den):
-        num_pbn = self._to_pbn(num)
-        den_pbn = self._to_pbn(den)
-        if den_pbn.decimal_value == 0:
-            raise ValueError("Denominator cannot be zero")
-        gcd = self._gcd(num_pbn.decimal_value, den_pbn.decimal_value)
-        simplified_num = num_pbn.decimal_value // gcd
-        simplified_den = den_pbn.decimal_value // gcd
-        if simplified_den < 0:
-            simplified_num = -simplified_num
-            simplified_den = -simplified_den
-        return (PBN(simplified_num, self.base, self.digits),
-                PBN(simplified_den, self.base, self.digits))
+    def _biaozhuih(self, fenzi, fenmu):
+        a, b = PBNF._zuijian(PBN(fenzi, self.base, self.jbiao), PBN(fenmu, self.base, self.jbiao))
+        if b == 0:
+            raise ValueError("分母不能为0")
 
-    def _to_pbn(self, value):
-        if isinstance(value, PBN):
-            return value.to_base(self.base)
-        return PBN(value, self.base, self.digits)
+        return a, b
 
     @staticmethod
-    def _gcd(a, b):
-        while b != 0:
-            a, b = b, a % b
-        return a
+    def _gcd(m, n):
+        while n != 0:
+            m, n = n, m % n
+        return m
+
+    @staticmethod
+    def _zuijian(m, n):
+        m, n = m // PBNF._gcd(m, n), n // PBNF._gcd(m, n)
+        return m, n
 
     def __str__(self):
-        return f"{self.numerator}/{self.denominator}"
-
-    def _convert_other(self, other):
-        if isinstance(other, (int, PBN)):
-            return PBNF(other, 1, self.base, self.digits)
-        elif isinstance(other, PBNF):
-            return other
-        return NotImplemented
+        return f"{self.fenzi}/{self.fenmu}"
 
     def __add__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
-            return NotImplemented
-        new_num = (self.numerator.decimal_value * other.denominator.decimal_value +
-                   self.denominator.decimal_value * other.numerator.decimal_value)
-        new_den = self.denominator.decimal_value * other.denominator.decimal_value
-        return PBNF(new_num, new_den, self.base, self.digits)
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                other = other.decimal_value
+            other = PBNF(other)
+        m = (self.fenzi * other.fenmu + self.fenmu * other.fenzi).decimal_value
+        n = (self.fenmu * other.fenmu).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), self.base, self.jbiao)
 
-    __radd__ = __add__
+    def __radd__(self, other):
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                base = other.base
+                jbiao = other.jbiao
+                other = other.decimal_value
+            else:
+                return self.__add__(other)
+        m = (self.fenzi * other.fenmu + self.fenmu * other.fenzi).decimal_value
+        n = (self.fenmu * other.fenmu).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), base, jbiao)
 
     def __sub__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
-            return NotImplemented
-        new_num = (self.numerator.decimal_value * other.denominator.decimal_value -
-                   self.denominator.decimal_value * other.numerator.decimal_value)
-        new_den = self.denominator.decimal_value * other.denominator.decimal_value
-        return PBNF(new_num, new_den, self.base, self.digits)
-
-    def __rsub__(self, other):
-        return -self + other
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                other = other.decimal_value
+            other = PBNF(other)
+        m = (self.fenzi * other.fenmu - self.fenmu * other.fenzi).decimal_value
+        n = (self.fenmu * other.fenmu).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), self.base, self.jbiao)
 
     def __neg__(self):
-        return PBNF(-self.numerator.decimal_value, self.denominator.decimal_value, self.base, self.digits)
+        return 0-self
+
+    def __rsub__(self, other):
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                base = other.base
+                jbiao = other.jbiao
+                other = other.decimal_value
+            else:
+                base = self.base
+                jbiao = self.jbiao
+                other = PBNF(other)
+        m = (-self.fenzi * other.fenmu + self.fenmu * other.fenzi).decimal_value
+        n = (self.fenmu * other.fenmu).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), base, jbiao)
 
     def __mul__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
-            return NotImplemented
-        new_num = self.numerator.decimal_value * other.numerator.decimal_value
-        new_den = self.denominator.decimal_value * other.denominator.decimal_value
-        return PBNF(new_num, new_den, self.base, self.digits)
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                other = other.decimal_value
+            other = PBNF(other)
+        m = (self.fenzi * other.fenzi).decimal_value
+        n = (self.fenmu * other.fenmu).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), self.base, self.jbiao)
 
-    __rmul__ = __mul__
+    def __rmul__(self, other):
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                base = other.base
+                jbiao = other.jbiao
+                other = other.decimal_value
+            else:
+                return self.__mul__(other)
+        m = (self.fenzi * other.fenzi).decimal_value
+        n = (self.fenmu * other.fenmu).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), base, jbiao)
 
     def __truediv__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
-            return NotImplemented
-        new_num = self.numerator.decimal_value * other.denominator.decimal_value
-        new_den = self.denominator.decimal_value * other.numerator.decimal_value
-        return PBNF(new_num, new_den, self.base, self.digits)
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                other = other.decimal_value
+            other = PBNF(other)
+        m = (self.fenzi * other.fenmu).decimal_value
+        n = (self.fenmu * other.fenzi).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), self.base, self.jbiao)
 
     def __rtruediv__(self, other):
-        other = self._convert_other(other)
-        if other is NotImplemented:
-            return NotImplemented
-        return other / self
-
-    def __eq__(self, other):
-        other = self._convert_other(other)
-        return (other is not NotImplemented and
-                self.numerator.decimal_value * other.denominator.decimal_value ==
-                self.denominator.decimal_value * other.numerator.decimal_value)
-
-    def __bool__(self):
-        return self.numerator.decimal_value != 0
+        if not isinstance(other, PBNF):
+            if isinstance(other, PBN):
+                base = other.base
+                jbiao = other.jbiao
+                other = other.decimal_value
+            else:
+                base = self.base
+                jbiao = self.jbiao
+                other = PBNF(other)
+        m = (self.fenmu * other.fenzi).decimal_value
+        n = (self.fenzi * other.fenmu).decimal_value
+        return PBNF(*PBNF._zuijian(m, n), base, jbiao)
