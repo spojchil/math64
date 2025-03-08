@@ -48,8 +48,6 @@ base_config=read_config(r"电费分析/基础配置.json")
 def step1_login(username,password):
     try:
         logger.debug("开始执行登录流程")
-        logger.debug(username)
-        logger.debug(password)
         login_url = "https://mycas.haut.edu.cn/token/password/passwordLogin"
         login_params = {
             "username": username,
@@ -224,7 +222,6 @@ def is_cookie_valid(response):
 url = "https://h5cloud.17wanxiao.com:18443/CloudPayment/user/getRoomState.do"
 #roomverify = base_config["roomverify"]
 roomverify = os.getenv('ROOMVERIFY')
-logger.debug(roomverify)
 params = {
     "payProId": 726,
     "schoolcode": 43,
@@ -261,6 +258,7 @@ def get_electricity(max_retries=3):
     while retries < max_retries:
         try:
             logger.debug(f"第 {retries + 1} 次尝试请求接口")
+            logger.debug(roomverify)
             response = requests.get(url, headers=headers, params=params, verify=False, cookies=cookies)
 
             if response.status_code == 200:
