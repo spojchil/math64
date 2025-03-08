@@ -38,7 +38,12 @@ jobs:
         source venv/bin/activate
         pip install --upgrade pip
         pip install -r requirements.txt
-
+    - name: 测试屏蔽情况
+      run: |
+        echo "=== 测试443端口 ==="
+        curl -Iv https://h5cloud.17wanxiao.com 2>&1 | grep 'Connected'
+        echo "=== 测试18443端口 ==="
+        nc -zv h5cloud.17wanxiao.com 18443
     # 运行爬虫
     - name: Run crawler
       run: |
