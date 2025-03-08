@@ -1,40 +1,29 @@
-name: 环境变量与路径测试
-
-on:
-  workflow_dispatch:
-
 jobs:
   monitor:
     runs-on: ubuntu-latest
+    # 方法 1：全局定义（推荐）
+    env:
+      ROOMVERIFY: ${{ secrets.ROOMVERIFY }}
+    
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # 缓存 Python 依赖
-    - name: 缓存 Python 依赖
-      uses: actions/cache@v3
-      id: cache-pip
-      with:
-        path: |
-          ~/.cache/pip
-          venv/
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+      - name: 缓存 Python 依赖
+        uses: actions/cache@v3
+        # ...缓存配置保持不变...
 
-    # 安装依赖
-    - name: 安装依赖
-      if: steps.cache-pip.outputs.cache-hit != 'true'
-      run: |
-        echo "验证值: $ROOMVERIFY"  # 检查是否能输出正确值
-        python -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: 安装依赖
+        if: steps.cache-pip.outputs.cache-hit != 'true'
+        run: |
+          echo "验证值: $ROOMVERIFY"  # 实际值会被 GitHub 隐藏
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
 
-      env: # ✅ 必须在此处或 job 级别定义
-        ROOMVERIFY: ${{ secrets.ROOMVERIFY }}
-    # 运行测试
-    - name: 运行测试
-      run: |
-        source venv/bin/activate
-        python 测试文件/变量与路径测试.py
+      - name: 运行测试
+        run: |
+          source venv/bin/activate
+          python 测试文件/变量与路径测试.py
+        # 方法 2：步骤级定义（如果需要覆盖全局）
+        env:
+          ROOMVERIFY: ${{ secrets.ROOMVERIFY }}  # 确保名称与 Secrets 完全一致
