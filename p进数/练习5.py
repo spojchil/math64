@@ -1,5 +1,5 @@
-from p进制运算 import PBN
-
+from p进制运算 import PBN  # 假设已实现优化后的PBN类
+from typing import Tuple, List, Optional
 P = 10
 p = P
 jindu = 30
