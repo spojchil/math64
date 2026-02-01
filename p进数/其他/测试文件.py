@@ -1,4 +1,4 @@
-from p进制运算 import PBN
+from p进数.其他.p进制运算 import PBN
 
 num1 = PBN(255)
 print(num1) #255
