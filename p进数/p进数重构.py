@@ -14,8 +14,8 @@ class 多进制有理数:
         self._分母表示 = None
         self._映射字典 = None
         self._正负 = 1
-        self._分子值 = self._处理输入(分子) * self._正负  # 此处乘法不可交换
         self._分母值 = self._处理输入(分母)
+        self._分子值 = self._处理输入(分子) * self._正负  # 此处乘法不可交换
         if self._分母值 == 0:
             raise ZeroDivisionError("分母不能为0")
         self._约分()

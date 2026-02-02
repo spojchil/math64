@@ -1074,6 +1074,27 @@ def test_有理数重构_异常场景():
     with pytest.raises(ValueError):
         dy.有理数重构("(6.9", 10)
 
+def test_各种padic运算():
+    # 本质绕路，或者是使用了更聪明的办法实现的
+    # 核心原理 有理数的 p-adic 运算，等价于 “有理数运算后再做 p-adic 展开
+    # 步骤1：把padic字符串转为有理数（类的有理数重构功能）
+    padic_str1 = "(1)2"
+    padic_str2 = "(3204)4"
+    r1 = dy.有理数重构(padic_str1, 进制=10)  # padic→有理数
+    r2 = dy.有理数重构(padic_str2, 进制=10)
+
+    # 步骤2：对有理数做需要的运算（类的精确有理数运算）
+    # 支持+、-、*、/、**等所有类实现的运算
+    r_result = r1 * r2  # 乘法，也可以是r1 + r2、r1**2等
+
+    # 步骤3：把运算后的有理数转回padic字符串（类的padic表示功能）
+    padic_result = r_result.padic表示()
+
+    # 验证：反向重构回来和原有理数一致，说明运算正确
+    assert dy.有理数重构(padic_result, 进制=10) == r_result
+
+
+
 if __name__ == "__main__":
     # 执行所有测试
     pytest.main(["-v", __file__])
