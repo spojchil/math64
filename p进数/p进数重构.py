@@ -2,7 +2,7 @@ class 多进制有理数:
     默认进制 = 10
     默认符号表 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-    __slots__ = ("_进制", "_符号表", "_正负", "_分子值", "_分子表示",
+    __slots__ = ("_进制", "_符号表", "_分子值", "_分子表示",
                  "_分母值", "_分母表示", "_映射字典")
 
     def __init__(self, 分子: int | str, 分母: int | str = 1,
@@ -13,12 +13,16 @@ class 多进制有理数:
         self._分子表示 = None
         self._分母表示 = None
         self._映射字典 = None
-        self._正负 = 1
-        self._分母值 = self._处理输入(分母)
-        self._分子值 = self._处理输入(分子) * self._正负  # 此处乘法不可交换
+        分母,分母符号 = self._处理输入(分母)
+        分子,分子符号 = self._处理输入(分子)
+        公因子 = 多进制有理数._欧几里得算法(分母,分子)
+        分母 //= 公因子
+        分子 //= 公因子
+        self._分母值 = 分母
+        self._分子值 = 分子 * 分母符号 * 分子符号
         if self._分母值 == 0:
             raise ZeroDivisionError("分母不能为0")
-        self._约分()
+
 
     @property
     def 进制(self):
@@ -39,7 +43,7 @@ class 多进制有理数:
     @property
     def 分子表示(self):
         if self._分子表示 is None:
-            self._分子表示 = "-" if self._正负 == -1 else ""
+            self._分子表示 = "-" if self._分子值 < 0 else ""
             self._分子表示 += self._十进转n(abs(self._分子值))
         return self._分子表示
 
@@ -70,18 +74,17 @@ class 多进制有理数:
                              f"符号表长度为{len(self._符号表)}，"
                              f"进制需在2到该长度之间")
 
-    def _处理输入(self, 值: int | str) -> int:
+    def _处理输入(self, 值: int | str):
         if isinstance(值, int):
-            self._正负 *= 1 if 值 >= 0 else -1
-            return abs(值)
+            return abs(值),1 if 值 >= 0 else -1
         if isinstance(值, str):
             self._验证输入字符串(值)
+            符号 = 1
             if 值.startswith('-'):
-                self._正负 *= -1
+                符号 = -1
                 值 = 值[1:]
-            return self._n进转十(值)
+            return self._n进转十(值),符号
         raise TypeError("分子和分母必须是整数或者字符串")
-
 
     def _验证输入字符串(self, 字符串: str):
         if 字符串 == "-":
@@ -125,55 +128,33 @@ class 多进制有理数:
             当前基 *= 进制
         return 十进值
 
-    def _约分(self):
-        """将分数化简为最简形式，并更新内部表示"""
-        if self._分子值 == 0:
-            # 分子为0，分母设为1
-            self._分母值 = 1
-            self._正负 = 1
-        else:
-            # 计算分子分母的最大公约数
-            分子绝对值 = abs(self._分子值)
-            分母绝对值 = abs(self._分母值)
+    @classmethod
+    def _快速创建(cls, 分子值, 分母值, 进制, 符号表):
+        """快速创建不验证进制和符号表"""
+        if 分母值 == 0:
+            raise ZeroDivisionError("分母不能为0")
+        if 分母值 < 0:
+            分母值,分子值 = -分母值,-分子值
 
-
-            # 使用math.gcd计算最大公约数
-            最大公约数, _, _ = 多进制有理数._扩展欧几里得(分子绝对值, 分母绝对值)
-
-            # 约分
-            self._分子值 = self._正负 * (分子绝对值 // 最大公约数)
-            self._分母值 = 分母绝对值 // 最大公约数
-
-            # 更新正负号
-            self._正负 = 1 if self._分子值 >= 0 else -1
-
-        # 清空缓存的字符串表示，因为值已改变
-        self._分子表示 = None
-        self._分母表示 = None
-
+        公因子 = 多进制有理数._欧几里得算法(分母值,abs(分子值))
+        分母值 //= 公因子
+        分子值 //= 公因子
+        实例 = cls.__new__(cls)
+        实例._进制 = 进制
+        实例._符号表 = 符号表
+        实例._分子值 = 分子值
+        实例._分母值 = 分母值
+        实例._分子表示 = None
+        实例._分母表示 = None
+        实例._映射字典 = None
+        return 实例
 
     @staticmethod
-    def _扩展欧几里得(a, b):
-        """
-        返回 (d, x, y) 使得 d = gcd(a, b) = a*x + b*y
-        参数:
-            a, b: 整数
-        返回:
-            (gcd, x, y) 三元组
-        """
-        # 初始化系数
-        x0, x1 = 1, 0  # x0 对应 a 的系数，x1 是中间变量
-        y0, y1 = 0, 1  # y0 对应 b 的系数，y1 是中间变量
-
+    def _欧几里得算法(a, b):
         while b != 0:
-            q = a // b
-            # 更新 a, b
             a, b = b, a % b
-            # 更新系数
-            x0, x1 = x1, x0 - q * x1
-            y0, y1 = y1, y0 - q * y1
 
-        return a, x0, y0
+        return a
 
     def 进制转换(self, 进制 = None, 符号表 = None):
         return 多进制有理数(self._分子值,self._分母值, 进制,符号表)
@@ -206,7 +187,7 @@ class 多进制有理数:
         else:
             新分子 = self._分子值 * other._分母值 + self._分母值 * other._分子值
             新分母 = self._分母值 * other._分母值
-        return 多进制有理数(新分子, 新分母, self._进制, self._符号表)
+        return 多进制有理数._快速创建(新分子, 新分母, self._进制, self._符号表)
 
     # 实现反向加法后 int += self和 self += int 均无问题，无需额外实现iadd
     # 注意经过测试 int + 多进制有理数 的返回会正确保持多进制有理数的进制和符号表
@@ -216,7 +197,7 @@ class 多进制有理数:
     # 理论上返回原对象速度更快，但是我们的属性都是不可变的
     # 所以我们应该让类也表现的不可变，因为我们的初始化成本并不小，
     def __neg__(self):
-        return 多进制有理数(-self._分子值, self._分母值,self._进制,self._符号表)
+        return 多进制有理数._快速创建(-self._分子值, self._分母值,self._进制,self._符号表)
 
     # 效率优先，尽量少使用类重载后的运算
     def __sub__(self, other):
@@ -229,7 +210,7 @@ class 多进制有理数:
         else:
             新分子 = self._分子值 * other._分母值 - self._分母值 * other._分子值
             新分母 = self._分母值 * other._分母值
-        return 多进制有理数(新分子, 新分母, self._进制, self._符号表)
+        return 多进制有理数._快速创建(新分子, 新分母, self._进制, self._符号表)
 
     # 这里不进行使用sub是，无交换律，不好保持进制和符号表
     def __rsub__(self, other):
@@ -239,10 +220,10 @@ class 多进制有理数:
         新分子 = self._分母值 * other - self._分子值
         新分母 = self._分母值
 
-        return 多进制有理数(新分子, 新分母 ,self._进制,self._符号表)
+        return 多进制有理数._快速创建(新分子, 新分母 ,self._进制,self._符号表)
     # 重载~用于取倒数
     def __invert__(self):
-        return 多进制有理数(self._分母值, self._分子值,self._进制,self._符号表)
+        return 多进制有理数._快速创建(self._分母值, self._分子值,self._进制,self._符号表)
 
     def __mul__(self, other):
         if not isinstance(other, (int, 多进制有理数)):
@@ -254,7 +235,7 @@ class 多进制有理数:
         else:
             新分子 = self._分子值 * other._分子值
             新分母 = self._分母值 * other._分母值
-        return 多进制有理数(新分子, 新分母, self._进制, self._符号表)
+        return 多进制有理数._快速创建(新分子, 新分母, self._进制, self._符号表)
 
     def __rmul__(self, other):
         return self.__mul__(other)
@@ -274,7 +255,7 @@ class 多进制有理数:
                 raise ZeroDivisionError("被除数不能为0")
             新分子 = self._分子值 * other._分母值
             新分母 = self._分母值 * other._分子值
-        return 多进制有理数(新分子, 新分母, self._进制, self._符号表)
+        return 多进制有理数._快速创建(新分子, 新分母, self._进制, self._符号表)
 
     def __rtruediv__(self, other):
         if not isinstance(other, int):
@@ -285,7 +266,7 @@ class 多进制有理数:
         新分子 = self._分母值 * other
         新分母 = self._分子值
 
-        return 多进制有理数(新分子, 新分母, self._进制, self._符号表)
+        return 多进制有理数._快速创建(新分子, 新分母, self._进制, self._符号表)
 
     @staticmethod
     def _整数根(m, n):
@@ -375,7 +356,7 @@ class 多进制有理数:
                 新分母 = 新分母 ** other._分子值
             else:
                 新分母,新分子 = 新分子 ** (-other._分子值),新分母 ** (-other._分子值)
-        return 多进制有理数(新分子,新分母,self._进制,self._符号表)
+        return 多进制有理数._快速创建(新分子,新分母,self._进制,self._符号表)
 
     def __rpow__(self, other):
         if not isinstance(other, int):
@@ -385,7 +366,7 @@ class 多进制有理数:
         if 新分子 is None:
             raise ValueError(f"无法在有理数中开{self._分母值}开方")
         新分子 = 新分子 ** self._分子值
-        return 多进制有理数(新分子,1,self._进制,self._符号表)
+        return 多进制有理数._快速创建(新分子,1,self._进制,self._符号表)
 
     def __mod__(self, other):
         """只允许整数"""
@@ -400,7 +381,7 @@ class 多进制有理数:
             if self._分母值 != 1 or other._分母值 != 1:
                 raise ValueError("取模只允许分母值为1")
             新分子 = self._分子值 % other._分子值
-        return 多进制有理数(新分子, 1, self._进制, self._符号表)
+        return 多进制有理数._快速创建(新分子, 1, self._进制, self._符号表)
 
     def __rmod__(self, other):
         if not isinstance(other, int):
@@ -410,7 +391,7 @@ class 多进制有理数:
             raise ValueError("取模只允许分母值为1")
 
         新分子 = other % self._分子值
-        return 多进制有理数(新分子,1,self._进制,self._符号表)
+        return 多进制有理数._快速创建(新分子,1,self._进制,self._符号表)
 
     def __floordiv__(self, other):
         """只允许整数"""
@@ -425,7 +406,7 @@ class 多进制有理数:
             if self._分母值 != 1 or other._分母值 != 1:
                 raise ValueError("整除只允许分母值为1")
             新分子 = self._分子值 // other._分子值
-        return 多进制有理数(新分子,1,self._进制,self._符号表)
+        return 多进制有理数._快速创建(新分子,1,self._进制,self._符号表)
 
     def __rfloordiv__(self, other):
         if not isinstance(other, int):
@@ -435,7 +416,7 @@ class 多进制有理数:
             raise ValueError("整除只允许分母值为1")
 
         新分子 = other // self._分子值
-        return 多进制有理数(新分子, 1, self._进制, self._符号表)
+        return 多进制有理数._快速创建(新分子, 1, self._进制, self._符号表)
 
     def __eq__(self, other):
         if not isinstance(other, (int,多进制有理数)):
@@ -486,7 +467,7 @@ class 多进制有理数:
         """
 
         # 处理符号
-        符号 = "-" if self._正负 == -1 else ""
+        符号 = "-" if self._分子值  < 0 else ""
 
         # 处理整数部分
         整数部分 = abs(self._分子值) // self._分母值
@@ -665,19 +646,41 @@ class 多进制有理数:
         分子,分母 = self._分子值,self._分母值
         进制,符号表 = self._进制,self._符号表
 
+        def 扩展欧几里得(a, b):
+            """
+            返回 (d, x, y) 使得 d = gcd(a, b) = a*x + b*y
+            参数:
+                a, b: 整数
+            返回:
+                (gcd, x, y) 三元组
+            """
+            # 初始化系数
+            x0, x1 = 1, 0  # x0 对应 a 的系数，x1 是中间变量
+            y0, y1 = 0, 1  # y0 对应 b 的系数，y1 是中间变量
+
+            while b != 0:
+                q = a // b
+                # 更新 a, b
+                a, b = b, a % b
+                # 更新系数
+                x0, x1 = x1, x0 - q * x1
+                y0, y1 = y1, y0 - q * y1
+
+            return a, x0, y0
+
         def 解同余方程(m, n):
             p = 进制
-            d, x, y = 多进制有理数._扩展欧几里得(n, p)
+            d, x, y = 扩展欧几里得(n, p)
             a0 = (x * (m // d)) % (p // d)
             b = (a0 * n - m) // p
             # 计算对应的值满足n*a0 - p*b = m
             return a0, -b
         # 使分母与进制互质
-        公因子,_,_ = 多进制有理数._扩展欧几里得(分母,进制)
+        公因子,_,_ = 扩展欧几里得(分母,进制)
         while 公因子 != 1:
             分子,分母 = (进制 // 公因子) * 分子 , ((进制 // 公因子) * 分母) // 进制
             负指数 += 1
-            公因子, _, _ = 多进制有理数._扩展欧几里得(分母, 进制)
+            公因子 = 扩展欧几里得(分母, 进制)
 
         余数字典={}
         商列表=[]
@@ -705,6 +708,8 @@ class 多进制有理数:
                     整数部分.pop()
                     循环部分 = 循环部分[-1:] + 循环部分[:-1]
                 if len(循环部分) == 1 and 循环部分[0] == 符号表[0]:
+                    if len(整数部分) == 0:
+                        整数部分.append(符号表[0])
                     结果列表 = 字符列表[:负指数] + ['.'] + 整数部分
                 # 构造结果列表：[小数部分, '.', 整数部分, ')', 循环部分, '(']
                 else:
