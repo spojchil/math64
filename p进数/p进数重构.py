@@ -274,8 +274,13 @@ class 多进制有理数:
         if m == 0:
             return 0
 
-        if abs(m) == 1:
+        if m == 1:
             return m
+
+        if m == -1:
+            if n % 2 == 0:
+                return None
+        return m
 
         # 处理负数的符号逻辑
         符号 = 1
