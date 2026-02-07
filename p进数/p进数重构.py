@@ -535,7 +535,9 @@ class 多进制有理数:
             return 符号 + 整数部分表示
 
     @staticmethod
-    def 有理数逼近(字符串:str, 进制 = 默认进制, 符号表 = 默认符号表):
+    def 有理数逼近(字符串:str, 进制 = None, 符号表 = None):
+        进制 = 进制 if 进制 is not None else 多进制有理数.默认进制
+        符号表 = 符号表 if 符号表 is not None else 多进制有理数.默认符号表
         def 连分数展开(p, q):
             """
             计算最简正分数 p/q 的连分数展开
@@ -739,7 +741,9 @@ class 多进制有理数:
         return ''.join(反转列表)
 
     @staticmethod
-    def 有理数重构(字符串:str, 进制 = 默认进制, 符号表 = 默认符号表):
+    def 有理数重构(字符串:str, 进制 = None, 符号表 = None):
+        进制 = 进制 if 进制 is not None else 多进制有理数.默认进制
+        符号表 = 符号表 if 符号表 is not None else 多进制有理数.默认符号表
         def 有理数重建(t,M):
             if t == 0:
                 return 0,1
